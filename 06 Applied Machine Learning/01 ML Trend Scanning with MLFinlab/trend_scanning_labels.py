@@ -129,7 +129,8 @@ def trend_scanning_labels(price_series: pd.Series, t_events: list = None, observ
                     max_metric_value_index = forward_window
 
             # Store label information (t1, return)
-            label_endtime_index = subset.index[max_metric_value_index - 1]
+            endtime_index = max_metric_value_index - 1 if look_forward else - max_metric_value_index
+            label_endtime_index = subset.index[endtime_index]
             t1_array.append(label_endtime_index)
             t_values_array.append(max_t_value)
 
@@ -138,7 +139,8 @@ def trend_scanning_labels(price_series: pd.Series, t_events: list = None, observ
             t_values_array.append(None)
 
     labels = pd.DataFrame({'t1': t1_array, 't_value': t_values_array}, index=t_events)
-    labels.loc[:, 'ret'] = price_series.reindex(labels.t1).values / price_series.reindex(labels.index).values - 1
+    if look_forward:
+        labels.loc[:, 'ret'] = price_series.reindex(labels.t1).values / price_series.reindex(labels.index).values - 1
     labels['bin'] = labels.t_value.apply(np.sign)
 
     return labels
